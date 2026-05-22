@@ -1,12 +1,14 @@
 import os
 import logging
-from telegram import Update
+from telegram import Update, WebhookInfo
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.error import TelegramError
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv("TELEGRAM_TOKEN")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://example.com")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Привет! Я бот. 👋")
@@ -26,7 +28,21 @@ async def main() -> None:
     
     await application.initialize()
     await application.start()
-    await application.updater.start_polling()
+    
+    # Set webhook
+    try:
+        await application.bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
+        logger.info(f"Webhook set to {WEBHOOK_URL}/webhook")
+    except TelegramError as e:
+        logger.error(f"Failed to set webhook: {e}")
+    
+    await application.updater.start_webhook(
+        listen="0.0.0.0",
+        port=8000,
+        url_path="/webhook",
+        webhook_url=f"{WEBHOOK_URL}/webhook"
+    )
+    
     await application.idle()
 
 if __name__ == '__main__':

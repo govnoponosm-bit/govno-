@@ -1,0 +1,13 @@
+[Unit]
+Description=Telegram Movie Bot
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/tg-bot
+ExecStart=/opt/tg-bot/.venv/bin/python bot.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
